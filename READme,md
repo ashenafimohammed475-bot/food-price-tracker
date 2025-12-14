@@ -1,0 +1,28 @@
+# Food Price Tracker
+
+A command-line Python application that tracks food and household item prices over time.
+It allows users to store prices, compare changes, and analyze trends by category.
+
+## Features
+
+- Add item prices with category selection
+- Validate item names and prices
+- Compare current prices with previous records
+- Search items by category
+- View category price summaries (average, min, max)
+- Store data in a CSV file
+
+## Requirements
+
+- Python 3.10 or newer
+
+## How to Run
+
+1. Clone or download the project
+2. Open a terminal in the project folder
+3. Run:
+
+```bash
+python main.py
+
+```
