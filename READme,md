@@ -1,28 +1,40 @@
-# Food Price Tracker
+# Food Price Tracker 🛒
 
-A command-line Python application that tracks food and household item prices over time.
-It allows users to store prices, compare changes, and analyze trends by category.
+A simple Python command-line application for tracking daily prices of food and household items.
 
 ## Features
 
-- Add item prices with category selection
-- Validate item names and prices
-- Compare current prices with previous records
-- Search items by category
-- View category price summaries (average, min, max)
-- Store data in a CSV file
+- Add item prices with categories
+- Automatic price comparison with previous entries
+- Category-based reports (average, highest, lowest)
+- Optional date range filtering
+- Data stored locally in CSV format
 
-## Requirements
+## Categories
 
-- Python 3.10 or newer
+- Grains
+- Food
+- Household
+- Drinks
+- Other
+
+## Technologies Used
+
+- Python
+- CSV file storage
+- Git & GitHub
+
+## Why this project?
+
+This project was built to practice real-world Python skills such as:
+
+- Input validation
+- File handling
+- Data analysis
+- Clean function-based design
 
 ## How to Run
 
-1. Clone or download the project
-2. Open a terminal in the project folder
-3. Run:
-
 ```bash
 python main.py
-
 ```

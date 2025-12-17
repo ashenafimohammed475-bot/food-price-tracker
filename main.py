@@ -1,12 +1,21 @@
+import os
 import csv
 from datetime import datetime
 
 FILE = "prices.csv"
 
 
+def ensure_csv_header():
+    if not os.path.exists(FILE):
+        with open(FILE, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["date", "item", "price", "category"])
+
 # -------------------------------------------------------
-# Choose category (fixed list)
+# Choose category
 # -------------------------------------------------------
+
+
 def choose_category():
     categories = ["grains", "food", "household", "drinks", "other"]
 
@@ -18,34 +27,32 @@ def choose_category():
         choice = input("Category number: ").strip()
         if choice.isdigit() and 1 <= int(choice) <= len(categories):
             return categories[int(choice) - 1]
+        print("Invalid choice. Try again.")
+
+
+# -------------------------------------------------------
+# Validation helpers
+# -------------------------------------------------------
+def get_valid_item():
+    while True:
+        item = input("Item: ").strip().lower()
+        if not item:
+            print("Item name cannot be empty.")
+        elif not any(char.isalpha() for char in item):
+            print("Item name must contain letters.")
         else:
-            print("Invalid choice. Try again.")
+            return item
 
 
-def category_summary():
-    category = choose_category()
-    items = {}
-
-    try:
-        with open(FILE) as f:
-            reader = csv.reader(f)
-            for row in reader:
-                date, item, price, saved_category = row
-
-                if saved_category == category:
-                    items[item] = float(price)
-
-    except FileNotFoundError:
-        print("No data found.")
-        return
-
-    if not items:
-        print(f"\nNo items found in category '{category}'.")
-        return
-
-    print(f"\nCategory: {category}")
-    for item, price in items.items():
-        print(f"{item:<12} → {price} birr")
+def get_valid_price():
+    while True:
+        try:
+            price = float(input("Price today: ").strip())
+            if price <= 0:
+                raise ValueError
+            return price
+        except ValueError:
+            print("Please enter a positive number.")
 
 
 # -------------------------------------------------------
@@ -57,88 +64,32 @@ def get_last_price(item):
     try:
         with open(FILE) as f:
             reader = csv.reader(f)
-            for row in reader:
-                date, saved_item, saved_price, saved_category = row
+            for date, saved_item, price, category in reader:
                 if saved_item == item:
-                    last_price = float(saved_price)
+                    last_price = float(price)
     except FileNotFoundError:
-        return None
+        pass
 
     return last_price
 
 
-def get_valid_item():
-    while True:
-        item = input("Item: ").strip().lower()
-
-        if not item:
-            print("Item name cannot be empty.")
-            continue
-
-        if not any(char.isalpha() for char in item):
-            print("Item name must contain letters.")
-            continue
-
-        return item
-
-
-def get_valid_price():
-    while True:
-        price_input = input("Price today: ").strip()
-        try:
-            price = float(price_input)
-            if price <= 0:
-                raise ValueError
-            return price
-        except ValueError:
-            print("Please enter a positive number for the price.")
-
-
 # -------------------------------------------------------
-# Add a price
-#
-
-while True:
-    item = input("Item: ").strip().lower()
-
-    if not item:
-        print("Item name cannot be empty.")
-        continue
-
-    if not any(char.isalpha() for char in item):
-        print("Item name must contain letters.")
-        continue
-
-    break
-
-    # Category selection
+# Add price
+# -------------------------------------------------------
+def add_price():
+    item = get_valid_item()
     category = choose_category()
+    price = get_valid_price()
 
-    # Price validation
-while True:
-    price_input = input("Price today: ").strip()
-    try:
-        price = float(price_input)
-        if price <= 0:
-            raise ValueError
-        break
-    except ValueError:
-        print("Please enter a positive number for the price.")
-
-    # Get last price
     last_price = get_last_price(item)
-
-    # Save date
     date = datetime.now().strftime("%Y-%m-%d")
 
-    # Write to CSV
     with open(FILE, "a", newline="") as f:
         writer = csv.writer(f)
         writer.writerow([date, item, price, category])
 
-    print("Saved!")
+    print("\nSaved!")
 
-    # Compare prices
     if last_price is None:
         print(f"First record for {item}.")
     else:
@@ -147,89 +98,18 @@ while True:
 
         if diff > 0:
             print(
-                f"{item.capitalize()} increased by {diff:.2f} birr (+{percent:.2f}%).")
+                f"{item.capitalize()} increased by {diff:.2f} birr (+{percent:.2f}%)")
         elif diff < 0:
             print(
-                f"{item.capitalize()} decreased by {abs(diff):.2f} birr ({percent:.2f}%).")
+                f"{item.capitalize()} decreased by {abs(diff):.2f} birr ({percent:.2f}%)")
         else:
-            print(f"{item.capitalize()} has no change since last entry.")
+            print(f"{item.capitalize()} has no change.")
 
 
 # -------------------------------------------------------
-# View recent entries
+# Category report
 # -------------------------------------------------------
-def view_report():
-    data = []
-
-    try:
-        with open(FILE) as f:
-            reader = csv.reader(f)
-            for row in reader:
-                data.append(row)
-    except FileNotFoundError:
-        print("No data yet.")
-        return
-
-    if not data:
-        print("No data yet.")
-        return
-
-    print("\nRecent Entries:")
-    for date, item, price, category in data[-5:]:
-        print(f"{date} | {item} | {price} | {category}")
-
-
-# -------------------------------------------------------
-# Main menu
-# -------------------------------------------------------
-def main():
-    while True:
-        print("\n--- Food Price Tracker ---")
-        print("1. Add price")
-        print("2. View category summary")
-        print("3. Exit")
-
-        choice = input("Choose: ").strip()
-
-        if choice == "1":
-            add_price()
-        elif choice == "2":
-            category_summary()
-        elif choice == "3":
-            print("Goodbye!")
-            break
-        else:
-            print("Invalid choice. Try again.")
-
-# -------------------------------------------------------
-# Start program
-# -------------------------------------------------------
-
-
-def search_by_category():
-    category = choose_category()
-    found = False
-
-    try:
-        with open(FILE) as f:
-            reader = csv.reader(f)
-            print(f"\nResults for category: {category}")
-            print("-" * 40)
-
-            for date, item, price, saved_category in reader:
-                if saved_category == category:
-                    print(f"{date} | {item} | {price}")
-                    found = True
-
-    except FileNotFoundError:
-        print("No data found.")
-        return
-
-    if not found:
-        print("No items found in this category.")
-
-
-def category_summary():
+def category_report():
     category = choose_category()
     prices = []
 
@@ -239,20 +119,88 @@ def category_summary():
             for date, item, price, saved_category in reader:
                 if saved_category == category:
                     prices.append(float(price))
-
     except FileNotFoundError:
         print("No data found.")
         return
 
     if not prices:
-        print("No data for this category.")
+        print("No records for this category.")
         return
 
-    print(f"\nCategory: {category}")
-    print(f"Items tracked: {len(prices)}")
-    print(f"Average price: {sum(prices) / len(prices):.2f} birr")
-    print(f"Highest price: {max(prices):.2f} birr")
-    print(f"Lowest price: {min(prices):.2f} birr")
+    print("\n--- Category Report ---")
+    print(f"Category: {category}")
+    print(f"Records: {len(prices)}")
+    print(f"Average: {sum(prices) / len(prices):.2f} birr")
+    print(f"Highest: {max(prices):.2f} birr")
+    print(f"Lowest: {min(prices):.2f} birr")
+
+
+# -------------------------------------------------------
+# Item trend
+# -------------------------------------------------------
+def item_trend():
+    item = input("Item name (e.g. rice): ").strip().lower()
+    records = []
+
+    try:
+        with open(FILE) as f:
+            reader = csv.reader(f)
+            for date, saved_item, price, category in reader:
+                if saved_item == item:
+                    records.append((date, float(price)))
+    except FileNotFoundError:
+        print("No data found.")
+        return
+
+    if len(records) < 2:
+        print(f"Not enough data to show trend for '{item}'.")
+        return
+
+    records.sort()
+    first_date, first_price = records[0]
+    last_date, last_price = records[-1]
+
+    change = last_price - first_price
+    percent = (change / first_price) * 100
+
+    print("\n--- Price Trend ---")
+    print(f"{item.capitalize()}: {first_date} → {last_date}")
+    print(f"Start: {first_price:.2f} birr")
+    print(f"Latest: {last_price:.2f} birr")
+
+    if change > 0:
+        print(f"📈 Increased by {change:.2f} birr (+{percent:.2f}%)")
+    elif change < 0:
+        print(f"📉 Decreased by {abs(change):.2f} birr ({percent:.2f}%)")
+    else:
+        print("No price change.")
+
+
+# -------------------------------------------------------
+# Main menu
+# -------------------------------------------------------
+def main():
+    ensure_csv_header()
+    while True:
+        print("\n--- Food Price Tracker ---")
+        print("1. Add price")
+        print("2. View category report")
+        print("3. View item trend")
+        print("4. Exit")
+
+        choice = input("Choose: ").strip()
+
+        if choice == "1":
+            add_price()
+        elif choice == "2":
+            category_report()
+        elif choice == "3":
+            item_trend()
+        elif choice == "4":
+            print("Goodbye 👋")
+            break
+        else:
+            print("Invalid choice.")
 
 
 if __name__ == "__main__":
