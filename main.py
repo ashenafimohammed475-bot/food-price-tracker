@@ -22,6 +22,32 @@ def choose_category():
             print("Invalid choice. Try again.")
 
 
+def category_summary():
+    category = choose_category()
+    items = {}
+
+    try:
+        with open(FILE) as f:
+            reader = csv.reader(f)
+            for row in reader:
+                date, item, price, saved_category = row
+
+                if saved_category == category:
+                    items[item] = float(price)
+
+    except FileNotFoundError:
+        print("No data found.")
+        return
+
+    if not items:
+        print(f"\nNo items found in category '{category}'.")
+        return
+
+    print(f"\nCategory: {category}")
+    for item, price in items.items():
+        print(f"{item:<12} → {price} birr")
+
+
 # -------------------------------------------------------
 # Get last price of an item
 # -------------------------------------------------------
@@ -160,25 +186,20 @@ def main():
     while True:
         print("\n--- Food Price Tracker ---")
         print("1. Add price")
-        print("2. View report")
-        print("3. Search by category")
-        print("4. Category summary")
-        print("5. Exit")
+        print("2. View category summary")
+        print("3. Exit")
 
         choice = input("Choose: ").strip()
 
         if choice == "1":
             add_price()
         elif choice == "2":
-            view_report()
-        elif choice == "3":
-            search_by_category()
-        elif choice == "4":
             category_summary()
-        elif choice == "5":
+        elif choice == "3":
+            print("Goodbye!")
             break
         else:
-            print("Invalid choice.")
+            print("Invalid choice. Try again.")
 
 # -------------------------------------------------------
 # Start program
